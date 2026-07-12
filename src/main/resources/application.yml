@@ -19,3 +19,8 @@ dcre:
 
   hcs:
     base-url: ${DCRE_HCS_BASE_URL:https://date.nager.at}
+    # Calendarific-compatible fallback; empty api-key (the default) disables it,
+    # so a clean clone still runs keyless with fail-and-retry semantics (R-38)
+    fallback:
+      base-url: ${DCRE_HCS_FALLBACK_BASE_URL:https://calendarific.com}
+      api-key: ${DCRE_HCS_FALLBACK_API_KEY:}

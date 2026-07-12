@@ -13,6 +13,8 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-data-jdbc'
     implementation 'org.springframework:spring-web'
     implementation 'org.springframework.boot:spring-boot-starter-json'
+    // Core library only: resilience4j-spring-boot* compatibility with Boot 4 is unverified
+    implementation 'io.github.resilience4j:resilience4j-circuitbreaker:2.4.0'
     implementation 'za.co.fnb.dcre:dcre-platform-persistence:0.1.0'
     implementation 'org.liquibase:liquibase-core'
     implementation 'org.springframework.boot:spring-boot-liquibase'

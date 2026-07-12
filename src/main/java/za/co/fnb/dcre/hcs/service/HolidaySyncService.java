@@ -2,9 +2,8 @@ package za.co.fnb.dcre.hcs.service;
 
 import org.springframework.stereotype.Service;
 import za.co.fnb.dcre.hcs.data.repo.PublicHolidayRepo;
-import za.co.fnb.dcre.hcs.service.NagerClient.NagerHoliday;
+import za.co.fnb.dcre.hcs.service.HolidayProvider.Holiday;
 
-import java.time.LocalDate;
 import java.util.List;
 
 /**
@@ -12,15 +11,17 @@ import java.util.List;
  * writer of public_holiday (R-04). Fetches base year + next year per country
  * so CDE's forward roll always has next-January cover; upserts keyed
  * (country, holiday_date) make each 6h window idempotent and self-correcting.
+ * Holidays come from the resilient provider: Nager primary behind a circuit
+ * breaker, optional key-gated fallback.
  */
 @Service
 public class HolidaySyncService {
 
-    private final NagerClient client;
+    private final ResilientHolidayProvider provider;
     private final PublicHolidayRepo holidays;
 
-    public HolidaySyncService(NagerClient client, PublicHolidayRepo holidays) {
-        this.client = client;
+    public HolidaySyncService(ResilientHolidayProvider provider, PublicHolidayRepo holidays) {
+        this.provider = provider;
         this.holidays = holidays;
     }
 
@@ -29,8 +30,8 @@ public class HolidaySyncService {
         int count = 0;
         for (String country : countries) {
             for (int year = baseYear; year <= baseYear + 1; year++) {
-                for (NagerHoliday holiday : client.fetch(year, country)) {
-                    holidays.upsert(country, LocalDate.parse(holiday.date()),
+                for (Holiday holiday : provider.fetch(year, country)) {
+                    holidays.upsert(country, holiday.date(),
                             holiday.localName(), holiday.name(), holiday.global());
                     count++;
                 }
