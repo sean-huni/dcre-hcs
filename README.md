@@ -16,7 +16,7 @@ HCS is the single writer of `public_holiday` (R-04). Each run fetches public hol
 
 ### Data
 
-Liquibase-owned XML changelogs (`db/changelog/db.changelog-master.xml`) on the shared `dcre_collections` DB, with per-service history tables `hcs_databasechangelog(+lock)`:
+Liquibase-owned XML changelogs (`db/changelog/db.changelog-master.xml`) on the shared `dcre_col` DB, with per-service history tables `hcs_databasechangelog(+lock)`:
 
 - `2026/07/001-hcs.xml`: `public_holiday` (`id UUID PK`, `country VARCHAR(2)`, `holiday_date DATE`, `local_name`, `name`, `is_global`, version + audit columns, `UNIQUE (country, holiday_date)`).
 - `2026/07/002-batch-metadata.xml`: Spring Batch metadata tables under the `HCS_BATCH_` prefix (`spring.batch.jdbc.initialize-schema: never`; Liquibase mints them).
@@ -57,7 +57,7 @@ Precedence: `application.yml` default < environment variable.
 
 | Env var | Default | Purpose |
 |---|---|---|
-| `DCRE_DB_URL` | `jdbc:postgresql://localhost:26257/dcre_collections?sslmode=disable` | CockroachDB datasource |
+| `DCRE_DB_URL` | `jdbc:postgresql://localhost:26257/dcre_col?sslmode=disable` | CockroachDB datasource |
 | `DCRE_DB_USER` | `root` | DB username |
 | `DCRE_DB_PASSWORD` | empty | DB password |
 | `DCRE_EXCHANGE_ROOT` | `../../../../../infra/dcre-infra/exchange` | Exchange root for the outcome seam (`outcomes/<JOB_NAME>`) |
