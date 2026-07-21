@@ -20,8 +20,13 @@ import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.net.InetSocketAddress;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
 @SpringBootTest(properties = {"spring.batch.job.enabled=false", "dcre.exchange-root=build/test-exchange"})
 class HcsJobTest {
@@ -100,6 +105,20 @@ class HcsJobTest {
         assertEquals(3, jdbc.queryForObject(
                 "SELECT count(*) FROM public_holiday WHERE country='ZA'", Integer.class),
                 "6h window resync is an upsert no-op");
+    }
+
+    @Test
+    void seamFallbackNameIsSelfDescribingWithoutJobNameEnv() throws Exception {
+        assumeTrue(System.getenv("JOB_NAME") == null, "requires no JOB_NAME in the test environment");
+        JobExecution run = jobOperator.start(hcsJob, new JobParametersBuilder()
+                .addString("sync.date", "2026-07-12", true)
+                .addString("window", "seam", true).toJobParameters());
+        assertEquals(BatchStatus.COMPLETED, run.getStatus());
+
+        Path seam = Path.of("build/test-exchange", "outcomes", "local-hcs-" + run.getId());
+        assertTrue(Files.exists(seam), "expected self-describing seam file " + seam + " (SCRUM-58)");
+        assertEquals(List.of("BUSINESS_ACCEPTED"), Files.readAllLines(seam),
+                "verdict must stay byte-exact");
     }
 }
 
