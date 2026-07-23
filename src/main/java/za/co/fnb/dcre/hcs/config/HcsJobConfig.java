@@ -12,6 +12,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
 import org.springframework.transaction.PlatformTransactionManager;
 import za.co.fnb.dcre.hcs.service.SyncTasklet;
+import za.co.fnb.dcre.platform.batch.HeartbeatWriter;
 import za.co.fnb.dcre.platform.batch.OutcomeSeamListener;
 import za.co.fnb.dcre.platform.batch.StaleExecutionSweeper;
 
@@ -22,11 +23,13 @@ public class HcsJobConfig {
 
     @Bean
     public Job hcsJob(JobRepository repo, PlatformTransactionManager tx, SyncTasklet tasklet,
+                      HeartbeatWriter heartbeatWriter,
                       @Value("${dcre.exchange-root}") String exchangeRoot) {
         Step syncStep = new StepBuilder("syncStep", repo).tasklet(tasklet, tx).build();
         // HCS is DB-only but still emits the business-verdict seam (SCRUM-58 shared listener).
         return new JobBuilder("hcsJob", repo)
                 .listener(new OutcomeSeamListener("hcs", exchangeRoot, execution -> "BUSINESS_ACCEPTED"))
+                .listener(heartbeatWriter)
                 .start(syncStep)
                 .build();
     }
