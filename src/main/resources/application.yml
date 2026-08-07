@@ -19,7 +19,7 @@ dcre:
   agtops-db-url: ${DCRE_AGTOPS_DB_URL:jdbc:postgresql://localhost:26257/agt_ops?sslmode=disable}
   agtops-db-user: ${DCRE_AGTOPS_DB_USER:root}
   agtops-db-password: ${DCRE_AGTOPS_DB_PASSWORD:}
-  exchange-root: ${DCRE_EXCHANGE_ROOT:../../../../../infra/dcre-infra/exchange}
+  exchange-root: ${DCRE_EXCHANGE_ROOT:../../../../../../infra/dcre-infra/exchange}
 
   hcs:
     base-url: ${DCRE_HCS_BASE_URL:https://date.nager.at}
