@@ -60,7 +60,7 @@ Precedence: `application.yml` default < environment variable.
 | `DCRE_DB_URL` | `jdbc:postgresql://localhost:26257/dcre_col?sslmode=disable` | CockroachDB datasource |
 | `DCRE_DB_USER` | `root` | DB username |
 | `DCRE_DB_PASSWORD` | empty | DB password |
-| `DCRE_EXCHANGE_ROOT` | `../../../../../infra/dcre-infra/exchange` | Exchange root for the outcome seam (`outcomes/<JOB_NAME>`) |
+| `DCRE_EXCHANGE_ROOT` | `../../../../../../infra/dcre-infra/exchange` | Exchange root for the outcome seam (`outcomes/<JOB_NAME>`) |
 | `DCRE_HCS_BASE_URL` | `https://date.nager.at` | Nager.Date base URL (primary holiday API) |
 | `DCRE_HCS_FALLBACK_BASE_URL` | `https://calendarific.com` | Calendarific-compatible fallback base URL |
 | `DCRE_HCS_FALLBACK_API_KEY` | empty (fallback disabled) | Fallback API key; empty keeps the keyless fail-and-retry behavior |
@@ -74,10 +74,12 @@ Precedence: `application.yml` default < environment variable.
 
 HTTP sources are stubbed with the JDK's `com.sun.net.httpserver` (no extra dependency):
 
-- `HcsJobTest`: sync writes current + next year rows; a second window is an upsert no-op.
-- `HcsJobFailureTest`: a Nager 500 fails the job (level-triggered, R-38).
-- `HcsFallbackTest`: primary always-500 plus a Calendarific-shaped stub and an API key syncs successfully, and the open breaker stops calls to the dead primary (exactly 2 primary calls for 4 fetches).
-- `HcsFallbackDisabledTest`: primary down with no API key still fails the job.
+- `HcsJobTest`: sync writes current + next year rows; a second window is an upsert no-op; the
+  seam filename is self-describing without `JOB_NAME`; and a nested context asserts a Nager 500
+  fails the job (level-triggered, R-38).
+- `HcsFallbackTest`: primary always-500 plus a Calendarific-shaped stub and an API key syncs
+  successfully, the open breaker stops calls to the dead primary (exactly 2 primary calls for 4
+  fetches), and a nested context asserts a down primary with no API key still fails the job.
 - `CucumberSuiteTest` (`features/holiday-sync.feature`): positive + negative BDD scenarios covering sync, idempotent resync with field refresh, and an upstream 500 leaving existing rows untouched.
 
 ## Local cluster deployment
@@ -93,6 +95,7 @@ AGT launches the image as an ephemeral Kubernetes Job per window: image from `ag
 ## Related repositories
 
 - Orchestrator: https://github.com/sean-huni/dcre-agt
-- Stage services: https://github.com/sean-huni/dcre-crr, https://github.com/sean-huni/dcre-ctv, https://github.com/sean-huni/dcre-cde, https://github.com/sean-huni/dcre-cir, https://github.com/sean-huni/dcre-crw, https://github.com/sean-huni/dcre-ixr, https://github.com/sean-huni/dcre-sxr, https://github.com/sean-huni/dcre-pxr, https://github.com/sean-huni/dcre-prg, https://github.com/sean-huni/dcre-ais
-- Platform libs: https://github.com/sean-huni/dcre-platform-model, https://github.com/sean-huni/dcre-platform-files, https://github.com/sean-huni/dcre-platform-batch, https://github.com/sean-huni/dcre-platform-persistence
+- Collections stages: https://github.com/sean-huni/dcre-crr, https://github.com/sean-huni/dcre-ctv, https://github.com/sean-huni/dcre-cde, https://github.com/sean-huni/dcre-crw, https://github.com/sean-huni/dcre-cir, https://github.com/sean-huni/dcre-cix, https://github.com/sean-huni/dcre-csx, https://github.com/sean-huni/dcre-cpx, https://github.com/sean-huni/dcre-crg
+- Payments stages: https://github.com/sean-huni/dcre-prr, https://github.com/sean-huni/dcre-ptv, https://github.com/sean-huni/dcre-pai, https://github.com/sean-huni/dcre-prw, https://github.com/sean-huni/dcre-pir
+- Platform libs: https://github.com/sean-huni/dcre-platform-model, https://github.com/sean-huni/dcre-platform-files, https://github.com/sean-huni/dcre-platform-batch, https://github.com/sean-huni/dcre-platform-persistence, https://github.com/sean-huni/dcre-platform-copybook
 - Infra + tooling: https://github.com/sean-huni/dcre-infra, https://github.com/sean-huni/dcre-fixture-toolkit, https://github.com/sean-huni/dcre-design-register, https://github.com/sean-huni/dcre-rpt
