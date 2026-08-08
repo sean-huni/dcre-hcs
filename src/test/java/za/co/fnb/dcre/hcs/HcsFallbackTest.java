@@ -101,7 +101,7 @@ class HcsFallbackTest {
 
     @DynamicPropertySource
     static void props(DynamicPropertyRegistry registry) {
-        registry.add("spring.datasource.url", HcsJobTest.CRDB::getJdbcUrl);
+        registry.add("spring.datasource.url", HcsJobTest::hcsDbUrl);
         registry.add("spring.datasource.username", HcsJobTest.CRDB::getUsername);
         registry.add("spring.datasource.password", HcsJobTest.CRDB::getPassword);
         registry.add("dcre.hcs.base-url", HcsFallbackTest::primaryUrl);
@@ -163,7 +163,7 @@ class HcsFallbackDisabledTest {
 
     @DynamicPropertySource
     static void props(DynamicPropertyRegistry registry) {
-        registry.add("spring.datasource.url", HcsJobTest.CRDB::getJdbcUrl);
+        registry.add("spring.datasource.url", HcsJobTest::hcsDbUrl);
         registry.add("spring.datasource.username", HcsJobTest.CRDB::getUsername);
         registry.add("spring.datasource.password", HcsJobTest.CRDB::getPassword);
         registry.add("dcre.hcs.base-url", HcsFallbackTest::primaryUrl);

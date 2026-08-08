@@ -4,12 +4,20 @@ spring:
     virtual:
       enabled: true
   datasource:
-    url: ${DCRE_DB_URL:jdbc:postgresql://localhost:26257/dcre_col?sslmode=disable}
+    # dcre_hcs is the database THIS service owns, and the only one it will migrate.
+    # It is not dcre_col: the owner ruled on 2026-08-08 that holiday data in the
+    # collections database is a 12FactorApp/SOLID violation (https://12factor.net/).
+    # FamilyGuard compares current_database() against dcre_hcs inside the Liquibase
+    # factory method, so pointing this at dcre_col, or at any other database, fails
+    # the context BEFORE any DDL runs.
+    url: ${DCRE_DB_URL:jdbc:postgresql://localhost:26257/dcre_hcs?sslmode=disable}
     username: ${DCRE_DB_USER:root}
     password: ${DCRE_DB_PASSWORD:}
   liquibase:
     change-log: classpath:db/changelog/db.changelog-master.xml
-    # Shared DB, per-service migration history (same isolation idea as HCS_BATCH_)
+    # Sole occupant of dcre_hcs, so a per-service history table is no longer an
+    # isolation requirement. It is kept because the name is the clearest statement of
+    # who owns this database, and because the fleet reads these names when auditing.
     database-change-log-table: hcs_databasechangelog
     database-change-log-lock-table: hcs_databasechangeloglock
 

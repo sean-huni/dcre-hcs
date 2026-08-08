@@ -5,20 +5,23 @@
         xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
         http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
 
-    <!-- Version 1, 2026-08-08: every database is dropped and recreated, so validCheckSum ANY is
-         gone. It existed only so an already-migrated database would accept the checksum change
-         that adding IF NOT EXISTS caused (observed live on MRR), and there is no already-migrated
+    <!-- Version 1, 2026-08-08: HCS's Spring Batch metadata now lives in dcre_hcs, alongside the
+         only table this service owns. It followed the service out of dcre_col for the same reason
+         the calendar did: batch bookkeeping for a holiday sync is not collections data.
+
+         validCheckSum ANY is gone. It existed only so an already-migrated database would accept
+         the checksum change that adding IF NOT EXISTS caused, and there is no already-migrated
          database. A changeset that accepts ANY checksum accepts a silent edit as readily as a
          deliberate one, which is a poor trade once the reason for it has expired.
 
          The IF NOT EXISTS clauses inside the .sql file STAY. They are not the defensive retrofit
          the version-1 directive removes: A-81 is a resumability control that bites on a FRESH
-         database too, because a pod SIGKILLed mid-file leaves the tables created and the sequences,
-         which come last, missing, with no changelog row written. -->
-    <changeSet id="002-batch-metadata-hcs" author="dcre">
+         database too, because a pod SIGKILLed mid-file leaves the tables created and the
+         sequences, which come last, missing, with no changelog row written. -->
+    <changeSet id="hcs-v1-batch-metadata" author="dcre">
         <!-- LIQUIBASE-SQL-EXCEPTION: Spring Batch ships its schema as vendor SQL; there is no
              typed Liquibase tag for "apply the framework's own DDL script". -->
-        <sqlFile path="db/changelog/2026/07/batch-metadata-hcs.sql" splitStatements="true"/>
+        <sqlFile path="db/changelog/2026/08/batch-metadata-hcs.sql" splitStatements="true"/>
     </changeSet>
 
 </databaseChangeLog>

@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <!-- ============================================================================
+         HCS VERSION 1 BASELINE, in dcre_hcs, the database this service owns.
+
+         WHAT MOVED AND WHY. public_holiday used to be created in dcre_col, the
+         COLLECTIONS family's database, by this service and, racing it, by cde's own
+         guard changeset. The owner ruled that out on 2026-08-08: "no, do not write
+         public holidays into dcre_col DB. This is a violation of the
+         12FactorApp/SOLID". A holiday calendar is not collections data, and a table
+         two unrelated contexts can both create is not owned by either.
+
+         hcs is the sole writer (R-04). Readers do not touch this table: they read
+         hol_cde_view over their own dedicated read-only datasource, so the physical
+         shape below can change without a fleet-wide edit.
+
+         THIS IS A FRESH VERSION 1. Every DCRE database is dropped and recreated, so
+         there is deliberately no validCheckSum, no IF NOT EXISTS, and no
+         onFail="MARK_RAN" precondition. Those guarded against an already-migrated
+         database, and there is none. In particular the cde race that justified the
+         old guard cannot recur: cde no longer creates this table anywhere, because
+         it no longer shares a database with it.
+
+         The previous form of this changeset was a raw DDL text block, which is the
+         vendor-lock the pure-XML rule exists to prevent. It is typed here, with a
+         rollback.
+
+         COLUMN NAMING. holiday_date repeats its own host table and by
+         rules/be/java/architecture.md should be shortened. It is NOT renamed, and
+         this is the one place that decision is actually free to be made, since hcs
+         owns the table. The obvious short form is a reserved word in SQL and would
+         need quoting at every use site including the published view, so the shortest
+         meaningful NON-RESERVED name wins. Recorded rather than silently kept.
+         ============================================================================ -->
+
+    <changeSet id="hcs-v1-public-holiday" author="dcre">
+        <createTable tableName="public_holiday">
+            <column name="id" type="UUID" defaultValueComputed="gen_random_uuid()">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="country" type="VARCHAR(2)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="holiday_date" type="DATE">
+                <constraints nullable="false"/>
+            </column>
+            <column name="local_name" type="VARCHAR(128)"/>
+            <column name="name" type="VARCHAR(128)"/>
+            <column name="is_global" type="BOOLEAN"/>
+            <column name="version" type="BIGINT" defaultValueNumeric="0">
+                <constraints nullable="false"/>
+            </column>
+            <column name="created_at" type="TIMESTAMPTZ" defaultValueComputed="now()">
+                <constraints nullable="false"/>
+            </column>
+            <column name="updated_at" type="TIMESTAMPTZ" defaultValueComputed="now()">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+        <addUniqueConstraint tableName="public_holiday" columnNames="country, holiday_date"
+                             constraintName="uq_public_holiday_country_date"/>
+        <rollback>
+            <dropTable tableName="public_holiday"/>
+        </rollback>
+    </changeSet>
+
+    <!-- ============================================================================
+         THE PUBLISHED CONTRACT. cde reads the calendar through this view and never
+         through the table, so hcs keeps the freedom to add columns, backfill, or
+         reshape the table without breaking a consumer in another context.
+
+         It is deliberately NARROWER than the table. cde's R-38 process-date roll
+         needs a country and a date and nothing else: it asks which dates in a range
+         are holidays, and how many are synced for a year. Publishing local_name,
+         name, is_global or the audit columns would invite a consumer to depend on
+         them, and every such dependency is a future coordinated release.
+         ============================================================================ -->
+
+    <changeSet id="hcs-v1-hol-cde-view" author="dcre">
+        <createView viewName="hol_cde_view">
+            SELECT country, holiday_date FROM public_holiday
+        </createView>
+        <rollback>
+            <dropView viewName="hol_cde_view"/>
+        </rollback>
+    </changeSet>
+
+</databaseChangeLog>

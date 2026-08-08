@@ -46,6 +46,10 @@ class HcsJobTest {
 
     static {
         CRDB.start();
+        // dcre_hcs must exist before ANY context boots: FamilyGuard compares current_database()
+        // against it inside the Liquibase factory method, so a context on the container default
+        // would refuse to start (which is exactly what DatabaseBoundaryIT asserts deliberately).
+        TestDatabases.create(CRDB, "dcre_hcs");
         try {
             NAGER_STUB = HttpServer.create(new InetSocketAddress(0), 0);
         } catch (IOException e) {
@@ -66,13 +70,18 @@ class HcsJobTest {
         }
     }
 
+    /** Container URL rewritten to dcre_hcs, the database this service owns. */
+    static String hcsDbUrl() {
+        return TestDatabases.forDatabase(CRDB, "dcre_hcs");
+    }
+
     static String stubUrl() {
         return "http://localhost:" + NAGER_STUB.getAddress().getPort();
     }
 
     @DynamicPropertySource
     static void props(DynamicPropertyRegistry registry) {
-        registry.add("spring.datasource.url", CRDB::getJdbcUrl);
+        registry.add("spring.datasource.url", HcsJobTest::hcsDbUrl);
         registry.add("spring.datasource.username", CRDB::getUsername);
         registry.add("spring.datasource.password", CRDB::getPassword);
         registry.add("dcre.hcs.base-url", HcsJobTest::stubUrl);
@@ -131,7 +140,7 @@ class HcsJobFailureTest {
 
     @DynamicPropertySource
     static void props(DynamicPropertyRegistry registry) {
-        registry.add("spring.datasource.url", HcsJobTest.CRDB::getJdbcUrl);
+        registry.add("spring.datasource.url", HcsJobTest::hcsDbUrl);
         registry.add("spring.datasource.username", HcsJobTest.CRDB::getUsername);
         registry.add("spring.datasource.password", HcsJobTest.CRDB::getPassword);
         registry.add("dcre.hcs.base-url", () -> HcsJobTest.stubUrl() + "/fail");
