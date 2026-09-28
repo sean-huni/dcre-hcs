@@ -23,6 +23,8 @@ Downstream, `dcre-cde` reads the calendar over its own holidays datasource
 (`DCRE_CDE_HOLIDAYS_DB_URL`, which AGT sets to the same HCS database URL) and fails closed when a
 collection year has no rows; the next HCS window self-heals it.
 
+**Known gap:** CDE reads the published view `hol_cde_view`, and nothing on this repository's `dev` creates it. Its creator (`db/changelog/2026/08/001-public-holiday.xml`, with the `FamilyGuard` database check) lives only on the unmerged branch `SCRUM-107-feat-shared-reference-context` (checked 2026-09-28).
+
 ## Architecture and principles
 
 ### Databases today
@@ -97,6 +99,7 @@ fail-and-retry semantics. Field mapping: the Calendarific `name` fills both `nam
 - Platform libs in Maven Local: `za.co.fnb.dcre:platform-persistence:0.1.0` and
   `za.co.fnb.dcre:platform-batch:0.1.0` (resolved via `mavenLocal()`)
 - For cluster runs: the `dcre-infra` kind cluster `dcre-dev`
+- The `dcre_hcs` database (the one AGT points HCS at) must be created by hand (`CREATE DATABASE IF NOT EXISTS dcre_hcs;`): dcre-infra's `scripts/crdb-init.sql` creates only `dcre_col`, `agt_ops` and `dcre_man` (checked 2026-09-28).
 
 ## Quickstart
 
@@ -171,8 +174,7 @@ kind load docker-image --name dcre-dev dcre-hcs:<tag>
 AGT then launches the image as an ephemeral Kubernetes Job per window: point `AGT_HCS_IMAGE` at
 `dcre-hcs:<tag>`; the interval is `AGT_HCS_INTERVAL_HOURS` (default 6), the database
 `AGT_HCS_SERVICE_DB_URL`. `dcre-infra`'s `scripts/switch-version.sh VERSION` repoints the fleet's
-stage images, HCS included (dcre-infra `origin/dev`, checked 2026-09-28). Releases are digits-only three-component SemVer git tags (no `v`
-prefix), uniform across the fleet.
+stage images, HCS included (dcre-infra `origin/dev`, checked 2026-09-28). Release tags are digits-only 3-component SemVer; this repo carries 1.0.0 through 2.2.1, and tagging is not uniform across the fleet (the payments stages carry none; `git ls-remote --tags`, checked 2026-09-28).
 
 ## Related repositories
 
