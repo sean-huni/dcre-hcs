@@ -92,7 +92,6 @@ AGT launches the image as an ephemeral Kubernetes Job per window: image from `ag
 
 ## Related repositories
 
-- Orchestrator: https://github.com/sean-huni/dcre-agt
-- Stage services: https://github.com/sean-huni/dcre-crr, https://github.com/sean-huni/dcre-ctv, https://github.com/sean-huni/dcre-cde, https://github.com/sean-huni/dcre-cir, https://github.com/sean-huni/dcre-crw, https://github.com/sean-huni/dcre-ixr, https://github.com/sean-huni/dcre-sxr, https://github.com/sean-huni/dcre-pxr, https://github.com/sean-huni/dcre-prg, https://github.com/sean-huni/dcre-ais
-- Platform libs: https://github.com/sean-huni/dcre-platform-model, https://github.com/sean-huni/dcre-platform-files, https://github.com/sean-huni/dcre-platform-batch, https://github.com/sean-huni/dcre-platform-persistence
-- Infra + tooling: https://github.com/sean-huni/dcre-infra, https://github.com/sean-huni/dcre-fixture-toolkit, https://github.com/sean-huni/dcre-design-register, https://github.com/sean-huni/dcre-rpt
+The complete, current list of live DCRE repositories (stage services, orchestrator, platform libraries, infra and tooling) lives in one place: the [DCRE design register README](https://github.com/sean-huni/dcre-design-register#repositories). Deprecated and archived repositories are deliberately absent from it. This README does not copy that list, so it cannot drift.
+
+- Design register: https://github.com/sean-huni/dcre-design-register (start at `docs/specs/DESIGN-REGISTER.md`; the diagrams in `docs/diagrams/` are the specification)
